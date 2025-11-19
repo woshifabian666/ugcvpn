@@ -1,6 +1,5 @@
-export const dynamic = "force-dynamic";
-
 "use client";
+export const dynamic = "force-dynamic";
 
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
@@ -29,7 +28,6 @@ export default function Dashboard() {
   const [subscription, setSubscription] = useState(null);
   const [keys, setKeys] = useState([]);
 
-  // Fetch subscription + keys
   useEffect(() => {
     if (!isLoaded || !user) return;
 
@@ -38,13 +36,13 @@ export default function Dashboard() {
     async function loadData() {
       try {
         const subRes = await fetch(
-          `http://localhost:3000/api/subscription?email=${email}`
+          `/api/subscription?email=${encodeURIComponent(email)}`
         );
         const subData = await subRes.json();
         setSubscription(subData);
 
         const keyRes = await fetch(
-          `http://localhost:3000/api/keys?email=${email}`
+          `/api/keys?email=${encodeURIComponent(email)}`
         );
         const keyData = await keyRes.json();
         setKeys(keyData.keys || []);
@@ -58,7 +56,6 @@ export default function Dashboard() {
     loadData();
   }, [user, isLoaded]);
 
-  // Loading screen
   if (!isLoaded || loading) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-[#EDEDED]">
@@ -67,7 +64,6 @@ export default function Dashboard() {
     );
   }
 
-  // No subscription yet → show plans
   if (!subscription?.active) {
     return (
       <div className="min-h-screen bg-[#EDEDED] p-8">
@@ -78,7 +74,6 @@ export default function Dashboard() {
             <div key={i} className="p-6 bg-white rounded-xl shadow">
               <h2 className="text-xl font-semibold mb-2">{plan.name}</h2>
               <p className="text-gray-700 mb-4">{plan.price}</p>
-
               <a
                 href={plan.url}
                 className="block text-center bg-black text-white px-4 py-2 rounded-lg"
@@ -92,14 +87,12 @@ export default function Dashboard() {
     );
   }
 
-  // Subscription active but ZERO keys → payment failed
   if (subscription.active && keys.length === 0) {
     return (
       <div className="min-h-screen bg-[#EDEDED] p-8">
         <h1 className="text-3xl font-bold mb-4">Subscription Issue</h1>
         <p className="mb-6 text-red-600">
-          Your payment succeeded, but no VPN key was generated.  
-          This usually means the Outline server rejected the request.
+          Your payment succeeded, but no VPN key was generated.
         </p>
 
         <a
@@ -112,7 +105,6 @@ export default function Dashboard() {
     );
   }
 
-  // Subscription active → show keys
   return (
     <div className="min-h-screen bg-[#EDEDED] p-8">
       <h1 className="text-3xl font-bold mb-6">Your VPN Keys</h1>
