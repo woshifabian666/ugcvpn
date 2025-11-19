@@ -1,3 +1,5 @@
+export const runtime = "edge";
+
 import { auth } from "@clerk/nextjs/server";
 
 export async function GET() {
@@ -7,17 +9,23 @@ export async function GET() {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const email = sessionClaims?.email;
+  const email = sessionClaims?.email ?? sessionClaims?.primaryEmail;
 
   if (!email) {
     return new Response("Missing email", { status: 400 });
   }
 
-  // Your backend URL (server.js)
-  const BACKEND_URL = "http://localhost:3000/keys?email=" + encodeURIComponent(email);
+  // Use Cloudflare Tunnel backend URL, NOT localhost
+  const BACKEND_URL = "https://api.ugcvpn.com/keys?email=" + encodeURIComponent(email);
 
   try {
-    const res = await fetch(BACKEND_URL);
+    const res = await fetch(BACKEND_URL, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
     const data = await res.json();
 
     return new Response(JSON.stringify(data), {
@@ -25,7 +33,7 @@ export async function GET() {
       headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error(err);
+    console.error("Backend error:", err);
     return new Response("Backend error", { status: 500 });
   }
 }
